@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t dsanchez97/kfnext_demo:latest ../
+docker build -t dsanchez97/kfnext_demo:latest .

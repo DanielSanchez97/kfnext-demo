@@ -10,8 +10,10 @@ import (
 func main() {
 	//fmt.Println("PORT:", os.Getenv("PORT"))
 	port := os.Getenv("PORT")
+	fmt.Println("runninf main and env port: " + port)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
 		fmt.Fprintf(w, "Hello World")
 
 		client := r.RemoteAddr

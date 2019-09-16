@@ -24,7 +24,6 @@ func main() {
 
 		client := r.RemoteAddr
 
-		
 		Info.Println("served " + client)
 	})
 

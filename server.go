@@ -4,21 +4,29 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
+	"log"
 )
 
 func main() {
-	//fmt.Println("PORT:", os.Getenv("PORT"))
-	port := os.Getenv("PORT")
-	fmt.Println("runninf main and env port: " + port)
+	//fmt.Println("PORT:", os.Getenv("PORT"))]
+	host := os.Getenv("HOST_demo")
+	port := os.Getenv("PORT_demo")
+	fmt.Println("running on env port: " + port +" and host: "+ host)
+
+
+	Info := log.New(os.Stdout,
+		"INFO: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Fprintf(w, "Hello World")
 
 		client := r.RemoteAddr
-		fmt.Println("served " + client + " at time " + time.Now().String())
+
+		
+		Info.Println("served " + client)
 	})
 
-	http.ListenAndServe(":"+port, nil)
+	http.ListenAndServe(host+":"+port, nil)
 }

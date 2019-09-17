@@ -19,7 +19,9 @@ resource "aws_instance" "example" {
     key_name = "${aws_key_pair.daniel-key-pair.key_name}"
 
     security_groups = ["${aws_security_group.web_access.name}", "${aws_security_group.ssh.name}"]
-    
+
+    user_data = "${data.template_file.create-user.rendered}"
+
 }
 
 variable "region"{
@@ -31,6 +33,14 @@ variable "amis"{
   default = {
     "us-east-2" = "ami-0e7c12c1bedd6bf21"
     "us-west-1" = "ami-08a12265d9e050d57"
+  }
+}
+
+data "template_file" "create-user" {
+  template = "${file("cloud-init/add-user.tpl")}"
+
+  vars = {
+    daniel-key = "${file("./keys/daniel.pub")}"
   }
 }
 

@@ -24,6 +24,49 @@ resource "aws_instance" "example" {
 
 }
 
+resource "aws_instance" "dev_example" {
+    ami = "${var.amis["${var.region}"]}"
+    instance_type = "t3.micro"
+
+    key_name = "${aws_key_pair.daniel-key-pair.key_name}"
+
+    security_groups = ["${aws_security_group.web_access.name}", "${aws_security_group.ssh.name}"]
+
+    user_data = "${data.template_file.create-user.rendered}"
+
+}
+
+
+resource "aws_route53_record" "daniel" {
+  zone_id = "${aws_route53_zone.daniel-kenan-ai.zone_id}"
+  name    = "${aws_route53_zone.daniel-kenan-ai.name}"
+  type    = "A"
+  ttl     = "60"
+  records = ["${aws_instance.example.public_ip}"]
+}
+
+resource "aws_route53_record" "danielNS" {
+  zone_id = "${aws_route53_zone.daniel-kenan-ai.zone_id}"
+  name    = "dev.${aws_route53_zone.daniel-kenan-ai.name}"
+  type    = "NS"
+  ttl     = "60"
+  records = [
+    "${aws_route53_zone.dev-daniel-kenan-ai.name_servers.0}",
+    "${aws_route53_zone.dev-daniel-kenan-ai.name_servers.1}",
+    "${aws_route53_zone.dev-daniel-kenan-ai.name_servers.2}",
+    "${aws_route53_zone.dev-daniel-kenan-ai.name_servers.3}"
+  ]
+}
+
+resource "aws_route53_record" "dev_daniel" {
+  zone_id = "${aws_route53_zone.dev-daniel-kenan-ai.zone_id}"
+  name    = "${aws_route53_zone.dev-daniel-kenan-ai.name}"
+  type    = "A"
+  ttl     = "60"
+  records = ["${aws_instance.dev_example.public_ip}"]
+}
+
+
 variable "region"{
   default = "us-west-1"
 }

@@ -1,0 +1,3 @@
+[webservers]
+daniel.kenan.ai name=daniel.kenan.ai prefix=daniel
+dev.daniel.kenan.ai name=dev.daniel.kenan.ai prefix=dev.daniel

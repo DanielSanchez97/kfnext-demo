@@ -1,0 +1,116 @@
+- hosts: webservers
+  remote_user: ec2-user
+  vars:
+    server_name: "{{hostvars[inventory_hostname].name}}"
+    prefix: "{{hostvars[inventory_hostname].prefix}}"
+  tasks:
+
+    - name: debug
+      debug:
+        msg: "{{prefix}}"
+
+    ### Start Installs for docker
+    - name: Ensure a list of yum packages are installed
+      yum:
+        name: "{{ packages }}"
+        state: latest
+        update_cache: yes
+      vars:
+        packages:
+        - python-pip
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+        - amazon-linux-extras
+      become: yes
+
+    - name: Add extras repository
+      shell: yum-config-manager --enable extras
+      become: yes
+    
+    - name: Install docker-ce (centos) via amazon-linux-extras packages
+      shell: "amazon-linux-extras install docker=18.06.1 -y"
+      become: yes
+
+    - name: Enable Docker CE service at startup
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+
+    - name: Ensure Python pip packages are installed
+      pip:
+        name: "{{ packages }}"
+        state: latest
+      vars:
+        packages:
+        - boto
+        - boto3
+        - docker-compose
+        - cffi
+        - requests
+      become: yes
+    ### End installs for docker
+
+    ### Start Certbot installs
+    - name: Install nginx
+      shell: amazon-linux-extras install nginx1.12 -y
+      args:
+        creates: /etc/nginx
+      become: yes
+
+    - name: Install yum utils and epel
+      yum:
+        name:
+          - yum-utils
+          - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: latest
+        update_cache: yes
+      become: yes
+
+    - name: Enable yum extras
+      shell: yum-config-manager --enable rhui-us-east-2-rhel-server-extras rhui-us-east-2-rhel-server-optional
+      become: yes
+
+    - name: Install certbot
+      yum:
+        name:
+          - python2-certbot-nginx
+        state: latest
+        update_cache: yes
+      become: yes
+
+    - name: Get cert
+      shell: certbot certonly --nginx -d {{server_name}} --agree-tos -m emergingtechnologieslab@gmail.com
+      args:
+        creates: /etc/letsencrypt/live/{{server_name}}/fullchain.pem
+      become: yes
+
+    - name: Install nginx config
+      template:
+        src: ./temp.j2
+        dest: /etc/nginx/conf.d/{{prefix}}.nginx.conf
+        mode: 0644
+      become: yes
+
+    - name: kill anything on port 80
+      shell: fuser -k 80/tcp
+      become: yes
+
+    - name: (Re)Start nginx
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: nginx
+      become: yes
+
+    - name: run docker
+      docker_container:
+        name: web-server
+        image: dsanchez97/kfnext_demo
+        detach: yes
+        state: started
+        published_ports: 
+          - 5050:5000
+      become: yes

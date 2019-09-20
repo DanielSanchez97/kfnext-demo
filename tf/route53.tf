@@ -4,6 +4,8 @@ resource "aws_route53_zone" "daniel-kenan-ai" {
   tags = {
     terraform = "1"
   }
+
+  depends_on = ["aws_instance.example"]
 }
 
 

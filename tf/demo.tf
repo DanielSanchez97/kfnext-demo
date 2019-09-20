@@ -42,7 +42,7 @@ resource "aws_route53_record" "daniel" {
   name    = "${aws_route53_zone.daniel-kenan-ai.name}"
   type    = "A"
   ttl     = "60"
-  records = ["${aws_instance.example.public_ip}"]
+  records = ["${aws_eip.ip.public_ip}"]
 }
 
 resource "aws_route53_record" "danielNS" {
